@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Ídolo — Modo Carrera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg: #06090a;
+  --bg-alt: #0a100e;
+  --panel: #101917;
+  --panel-soft: #0c1412;
+  --panel-border: rgba(18,226,155,0.14);
+  --panel-border-strong: rgba(18,226,155,0.30);
+  --emerald: #12E29B;
+  --emerald-dim: #0B8F63;
+  --emerald-glow: rgba(18,226,155,0.35);
+  --ruby: #FF3B5C;
+  --ruby-glow: rgba(255,59,92,0.30);
+  --amber: #FFB020;
+  --text: #EAF3EF;
+  --text-muted: #7E948D;
+  --text-faint: #4F6560;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 9px;
+  --font-display: 'Teko', sans-serif;
+  --font-head: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --ease: cubic-bezier(.22,.9,.32,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:radial-gradient(ellipse at 50% -10%, #0d1a16 0%, var(--bg) 55%);
+  color:var(--text);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{ margin:0; font-family:var(--font-head); font-weight:600; letter-spacing:.01em; }
+p{ margin:0; }
+button{ font-family:inherit; cursor:pointer; }
+input,select{ font-family:inherit; }
+::selection{ background:var(--emerald-glow); color:#fff; }
+a{ color:var(--emerald); }
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.tab-btn:focus-visible,
+.option-btn:focus-visible,
+[tabindex]:focus-visible{
+  outline: 2px solid var(--emerald);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+
+/* ============================================================
+   BACKGROUND CANVAS
+   ============================================================ */
+#bg-canvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* ============================================================
+   SCREEN SWITCHING
+   ============================================================ */
+.screen{
+  display:none;
+  position:relative;
+  z-index:1;
+  min-height:100vh;
+}
+.screen.active{ display:flex; flex-direction:column; }
+.screen.fade-in{ animation: screenFadeIn .5s var(--ease) both; }
+.screen.fade-out{ animation: screenFadeOut .32s ease both; }
+@keyframes screenFadeIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes screenFadeOut{ from{ opacity:1; } to{ opacity:0; transform:translateY(-6px); } }
+
+/* ============================================================
+   AUTH SCREEN
+   ============================================================ */
+#auth-screen{
+  align-items:center;
+  justify-content:center;
+  padding:6vh 1.25rem;
+  gap:2.5rem;
+}
+.brand-block{
+  text-align:center;
+  margin-bottom:.25rem;
+}
+.brand-mark{
+  font-family:var(--font-display);
+  font-size:clamp(3.2rem, 9vw, 5.2rem);
+  line-height:.9;
+  font-weight:600;
+  letter-spacing:.02em;
+  color:var(--text);
+  text-shadow: 0 0 26px var(--emerald-glow), 0 0 3px rgba(18,226,155,.6);
+}
+.brand-mark span{ color:var(--emerald); }
+.brand-tag{
+  font-family:var(--font-head);
+  font-weight:600;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  font-size:.72rem;
+  color:var(--text-muted);
+  margin-top:.35rem;
+}
+
+.auth-card{
+  width:100%;
+  max-width:420px;
+  background:linear-gradient(180deg, rgba(16,25,23,.9), rgba(10,16,14,.92));
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-lg);
+  padding:1.6rem 1.6rem 1.8rem;
+  backdrop-filter:blur(10px);
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
+}
+
+.tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  background:var(--panel-soft);
+  border:1px solid var(--panel-border);
+  border-radius:999px;
+  padding:4px;
+  margin-bottom:1.5rem;
+}
+.tab-btn{
+  border:none;
+  background:transparent;
+  color:var(--text-muted);
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:.85rem;
+  letter-spacing:.02em;
+  padding:.6rem .5rem;
+  border-radius:999px;
+  transition:color .2s ease, background .25s ease;
+}
+.tab-btn.active{
+  color:#04140e;
+  background:var(--emerald);
+  box-shadow:0 4px 18px -4px var(--emerald-glow);
+}
+
+.auth-form{ display:none; flex-direction:column; gap:1.05rem; }
+.auth-form.active{ display:flex; }
+
+.field{ display:flex; flex-direction:column; gap:.35rem; }
+.field label{
+  font-family:var(--font-head);
+  font-size:.74rem;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-muted);
+}
+.field .input-row{ position:relative; display:flex; align-items:center; }
+.field input, .field select{
+  width:100%;
+  background:#0c1614;
+  border:1.5px solid rgba(255,255,255,.09);
+  color:var(--text);
+  padding:.72rem .85rem;
+  border-radius:var(--radius-sm);
+  font-size:.95rem;
+  transition:border-color .2s ease, box-shadow .2s ease;
+  appearance:none;
+}
+.field select{
+  background-image:linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(1.15em), calc(100% - 13px) calc(1.15em);
+  background-size:5px 5px, 5px 5px;
+  background-repeat:no-repeat;
+}
+.field input::placeholder{ color:var(--text-faint); }
+.field .check-icon{
+  position:absolute;
+  right:.75rem;
+  font-size:.95rem;
+  opacity:0;
+  transform:scale(.6);
+  transition:opacity .2s ease, transform .2s ease;
+}
+.field.valid input{ border-color:var(--emerald); box-shadow:0 0 0 3px var(--emerald-glow); }
+.field.valid .check-icon.icon-ok{ opacity:1; transform:scale(1); color:var(--emerald); }
+.field.invalid input{ border-color:var(--ruby); box-shadow:0 0 0 3px var(--ruby-glow); }
+.field.invalid .check-icon.icon-err{ opacity:1; transform:scale(1); color:var(--ruby); }
+.field .error-text{
+  min-height:1.1em;
+  font-size:.76rem;
+  color:var(--ruby);
+  transition:opacity .15s ease;
+}
+
+.primary-btn{
+  position:relative;
+  border:none;
+  border-radius:var(--radius-sm);
+  background:linear-gradient(180deg, var(--emerald), var(--emerald-dim));
+  color:#04140e;
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:1rem;
+  letter-spacing:.03em;
+  padding:.85rem 1rem;
+  margin-top:.25rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  transition:filter .2s ease, transform .12s ease, opacity .2s ease;
+  box-shadow:0 10px 24px -10px var(--emerald-glow);
+}
+.primary-btn:hover:not(:disabled){ filter:brightness(1.08); }
+.primary-btn:active:not(:disabled){ transform:translateY(1px); }
+.primary-btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none; }
+
+.btn-spinner{
+  width:15px; height:15px;
+  border:2px solid rgba(4,20,14,.35);
+  border-top-color:#04140e;
+  border-radius:50%;
+  display:inline-block;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+.auth-switch-hint{
+  text-align:center;
+  font-size:.78rem;
+  color:var(--text-faint);
+  margin-top:1.1rem;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+#modal-root{ position:fixed; inset:0; z-index:50; pointer-events:none; }
+.modal-backdrop{
+  position:fixed; inset:0;
+  background:rgba(4,8,7,.65);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  padding:1.25rem;
+  opacity:0;
+  pointer-events:auto;
+  transition:opacity .25s ease;
+}
+.modal-backdrop.show{ opacity:1; }
+.modal-panel{
+  width:100%; max-width:440px;
+  background:linear-gradient(180deg, #101c19, #0b1513);
+  border:1px solid var(--panel-border-strong);
+  border-radius:var(--radius-lg);
+  padding:1.75rem;
+  transform:translateY(14px) scale(.97);
+  opacity:0;
+  transition:transform .3s var(--ease), opacity .3s var(--ease);
+  box-shadow:0 40px 80px -20px rgba(0,0,0,.7);
+  position:relative;
+  max-height:88vh;
+  overflow-y:auto;
+}
+.modal-backdrop.show .modal-panel{ transform:translateY(0) scale(1); opacity:1; }
+.modal-close{
+  position:absolute; top:.9rem; right:.9rem;
+  width:30px; height:30px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  color:var(--text-muted);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1rem;
+  transition:background .2s ease, color .2s ease;
+}
+.modal-close:hover{ background:rgba(255,59,92,.15); color:var(--ruby); }
+.modal-icon{
+  width:52px; height:52px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem;
+  margin-bottom:1rem;
+  background:var(--emerald-glow);
+}
+.modal-title{ font-size:1.35rem; margin-bottom:.5rem; }
+.modal-body{ color:var(--text-muted); font-size:.92rem; line-height:1.5; }
+.modal-actions{ display:flex; gap:.7rem; margin-top:1.4rem; }
+.modal-actions .primary-btn{ margin-top:0; flex:1; }
+.ghost-btn{
+  flex:1;
+  border:1px solid rgba(255,255,255,.14);
+  background:transparent;
+  color:var(--text-muted);
+  border-radius:var(--radius-sm);
+  padding:.85rem 1rem;
+  font-family:var(--font-head);
+  font-weight:600;
+  transition:border-color .2s ease, color .2s ease;
+}
+.ghost-btn:hover{ border-color:var(--emerald); color:var(--emerald); }
+
+.contract-row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:.65rem 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  font-size:.88rem;
+}
+.contract-row:last-child{ border-bottom:none; }
+.contract-row .label{ color:var(--text-faint); }
+.contract-row .value{ font-family:var(--font-head); font-weight:600; }
+.status-pill{
+  display:inline-block;
+  padding:.2rem .65rem;
+  border-radius:999px;
+  font-size:.72rem;
+  font-family:var(--font-head);
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.status-pro{ background:rgba(18,226,155,.14); color:var(--emerald); }
+.status-amateur{ background:rgba(255,176,32,.14); color:var(--amber); }
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+#toast-stack{
+  position:fixed; top:1rem; right:1rem; z-index:60;
+  display:flex; flex-direction:column; gap:.55rem;
+  pointer-events:none;
+}
+.toast{
+  background:#101a17;
+  border:1px solid var(--panel-border-strong);
+  border-left:3px solid var(--emerald);
+  color:var(--text);
+  padding:.7rem 1rem;
+  border-radius:var(--radius-sm);
+  font-size:.85rem;
+  max-width:280px;
+  box-shadow:0 14px 30px -10px rgba(0,0,0,.6);
+  animation: toastIn .35s var(--ease) both;
+}
+.toast.out{ animation: toastOut .3s ease forwards; }
+@keyframes toastIn{ from{ opacity:0; transform:translateX(24px);} to{opacity:1; transform:translateX(0);} }
+@keyframes toastOut{ to{ opacity:0; transform:translateX(24px);} }
+
+/* ============================================================
+   GAME SCREEN
+   ============================================================ */
+#game-screen{ padding-bottom:3rem; }
+
+.dashboard-header{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:1rem;
+  padding:.85rem clamp(1rem,4vw,2.5rem);
+  background:rgba(8,13,11,.72);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--panel-border);
+  flex-wrap:wrap;
+}
+.header-brand{
+  font-family:var(--font-display);
+  font-size:1.7rem;
+  font-weight:600;
+  letter-spacing:.02em;
+  white-space:nowrap;
+}
+.header-brand span{ color:var(--emerald); }
+
+.stat-strip{
+  display:flex;
+  gap:clamp(.5rem, 2vw, 1.4rem);
+  flex-wrap:wrap;
+}
+.stat-chip{
+  display:flex; flex-direction:column; align-items:center;
+  min-width:64px;
+  padding:.25rem .3rem;
+  border-radius:var(--radius-sm);
+  transition:background .2s ease;
+}
+.stat-chip .stat-label{
+  font-family:var(--font-head);
+  font-size:.62rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+}
+.stat-chip .stat-value{
+  font-family:var(--font-display);
+  font-size:1.65rem;
+  line-height:1;
+  font-weight:600;
+  color:var(--text);
+  transition:color .25s ease;
+}
+.stat-chip.energy-low .stat-value{ color:var(--ruby); }
+.stat-chip.pulse-up .stat-value{ animation:pulseGreen .7s ease; }
+.stat-chip.pulse-down .stat-value{ animation:pulseRed .7s ease; }
+@keyframes pulseGreen{ 0%{ color:var(--emerald); text-shadow:0 0 14px var(--emerald-glow);} 100%{ color:var(--text); text-shadow:none;} }
+@keyframes pulseRed{ 0%{ color:var(--ruby); text-shadow:0 0 14px var(--ruby-glow);} 100%{ color:var(--text); text-shadow:none;} }
+
+.header-actions{ display:flex; gap:.6rem; flex-wrap:wrap; }
+.chip-btn{
+  border:1px solid var(--panel-border-strong);
+  background:var(--panel-soft);
+  color:var(--text);
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:.78rem;
+  padding:.55rem .9rem;
+  border-radius:999px;
+  display:flex; align-items:center; gap:.4rem;
+  transition:border-color .2s ease, background .2s ease, transform .12s ease;
+}
+.chip-btn:hover{ border-color:var(--emerald); background:rgba(18,226,155,.08); }
+.chip-btn:active{ transform:translateY(1px); }
+
+.dashboard-main{
+  display:grid;
+  grid-template-columns: minmax(0,1.5fr) minmax(280px, 1fr);
+  gap:1.6rem;
+  padding:1.8rem clamp(1rem,4vw,2.5rem);
+  max-width:1180px;
+  margin:0 auto;
+  width:100%;
+}
+@media (max-width: 860px){
+  .dashboard-main{ grid-template-columns:1fr; }
+}
+
+/* Event card */
+.event-card{
+  background:linear-gradient(180deg, rgba(16,25,23,.85), rgba(9,15,13,.9));
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-lg);
+  padding:clamp(1.4rem, 3vw, 2.2rem);
+  position:relative;
+  overflow:hidden;
+  min-height:340px;
+  display:flex;
+  flex-direction:column;
+}
+.event-card::before{
+  content:"";
+  position:absolute; top:-40%; right:-20%;
+  width:280px; height:280px;
+  background:radial-gradient(circle, var(--emerald-glow), transparent 70%);
+  filter:blur(10px);
+  pointer-events:none;
+}
+.event-eyebrow{
+  font-family:var(--font-head);
+  font-size:.72rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--emerald);
+  margin-bottom:.6rem;
+}
+.event-title{
+  font-size:clamp(1.4rem, 3vw, 1.9rem);
+  margin-bottom:.75rem;
+  max-width:34ch;
+}
+.event-desc{
+  color:var(--text-muted);
+  font-size:.98rem;
+  line-height:1.6;
+  max-width:52ch;
+  margin-bottom:1.6rem;
+}
+.event-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.9rem;
+  margin-top:auto;
+}
+@media (max-width:520px){
+  .event-options{ grid-template-columns:1fr; }
+}
+.option-btn{
+  text-align:left;
+  border:1.5px solid rgba(255,255,255,.1);
+  background:var(--panel-soft);
+  border-radius:var(--radius-md);
+  padding:1rem 1.1rem;
+  color:var(--text);
+  transition:border-color .2s ease, background .2s ease, transform .12s ease;
+  display:flex; flex-direction:column; gap:.3rem;
+}
+.option-btn:hover:not(:disabled){ border-color:var(--emerald); background:rgba(18,226,155,.06); }
+.option-btn:active:not(:disabled){ transform:translateY(1px); }
+.option-btn:disabled{ opacity:.5; cursor:default; }
+.option-label{ font-family:var(--font-head); font-weight:700; font-size:1rem; }
+.option-hint{ font-size:.76rem; color:var(--text-faint); }
+
+.feedback-banner{
+  margin-top:1.1rem;
+  padding:.85rem 1rem;
+  border-radius:var(--radius-md);
+  background:rgba(18,226,155,.08);
+  border:1px solid var(--panel-border-strong);
+  font-size:.9rem;
+  color:var(--text);
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity .3s ease, transform .3s ease;
+}
+.feedback-banner.show{ opacity:1; transform:translateY(0); }
+.feedback-banner.negative{ background:rgba(255,59,92,.08); border-color:rgba(255,59,92,.35); }
+
+/* Player card / aside */
+.side-col{ display:flex; flex-direction:column; gap:1.2rem; }
+.player-card{
+  background:linear-gradient(160deg, rgba(16,25,23,.9), rgba(9,15,13,.92));
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-lg);
+  padding:1.5rem;
+  text-align:center;
+}
+.ovr-ring-wrap{ position:relative; width:132px; height:132px; margin:0 auto .9rem; }
+.ovr-ring{ width:132px; height:132px; transform:rotate(-90deg); }
+.ring-track{ stroke:rgba(255,255,255,.08); stroke-width:9; fill:none; }
+.ring-progress{
+  stroke:var(--emerald); stroke-width:9; fill:none; stroke-linecap:round;
+  transition:stroke-dashoffset .7s var(--ease);
+  filter:drop-shadow(0 0 8px var(--emerald-glow));
+}
+.ovr-center{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.ovr-num{ font-family:var(--font-display); font-size:2.6rem; line-height:1; color:var(--text); }
+.ovr-cap{ font-family:var(--font-head); font-size:.62rem; letter-spacing:.14em; color:var(--text-faint); text-transform:uppercase; }
+
+.player-name{ font-size:1.15rem; margin-bottom:.15rem; }
+.player-position{
+  display:inline-block;
+  font-family:var(--font-head);
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--amber);
+  background:rgba(255,176,32,.12);
+  padding:.2rem .6rem;
+  border-radius:999px;
+  margin-bottom:.9rem;
+}
+.mini-bars{ display:flex; flex-direction:column; gap:.6rem; text-align:left; }
+.mini-bar-row{ display:flex; align-items:center; gap:.6rem; }
+.mini-bar-label{ font-size:.7rem; color:var(--text-faint); width:52px; flex-shrink:0; font-family:var(--font-head); letter-spacing:.05em; text-transform:uppercase;}
+.mini-bar-track{ flex:1; height:6px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
+.mini-bar-fill{ height:100%; border-radius:999px; background:var(--emerald); transition:width .6s var(--ease); }
+.mini-bar-fill.energy{ background:linear-gradient(90deg, var(--emerald), var(--amber)); }
+.mini-bar-fill.energy.low{ background:var(--ruby); }
+.mini-bar-num{ font-size:.72rem; color:var(--text-muted); width:26px; text-align:right; }
+
+.history-panel{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:var(--radius-lg);
+  padding:1.3rem 1.4rem;
+}
+.history-title{
+  font-family:var(--font-head);
+  font-size:.78rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  margin-bottom:.8rem;
+}
+.history-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.65rem; max-height:220px; overflow-y:auto; }
+.history-list li{
+  font-size:.82rem;
+  color:var(--text-muted);
+  padding-left:.8rem;
+  border-left:2px solid var(--panel-border-strong);
+  line-height:1.45;
+  animation:histIn .35s ease both;
+}
+@keyframes histIn{ from{ opacity:0; transform:translateX(-6px);} to{ opacity:1; transform:translateX(0);} }
+.history-empty{ font-size:.82rem; color:var(--text-faint); }
+
+/* floating stat pop */
+.stat-pop{
+  position:fixed;
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:.85rem;
+  pointer-events:none;
+  z-index:70;
+  animation: popFloat 1.1s ease forwards;
+}
+.stat-pop.pos{ color:var(--emerald); text-shadow:0 0 10px var(--emerald-glow); }
+.stat-pop.neg{ color:var(--ruby); text-shadow:0 0 10px var(--ruby-glow); }
+@keyframes popFloat{
+  0%{ opacity:0; transform:translateY(0); }
+  15%{ opacity:1; }
+  100%{ opacity:0; transform:translateY(-38px); }
+}
+
+/* Retirement summary */
+.summary-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin:1.1rem 0; }
+.summary-item{ background:var(--panel-soft); border:1px solid var(--panel-border); border-radius:var(--radius-sm); padding:.8rem; text-align:center; }
+.summary-item .n{ font-family:var(--font-display); font-size:1.9rem; color:var(--emerald); }
+.summary-item .l{ font-size:.68rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em; font-family:var(--font-head); }
+
+footer.foot-note{
+  text-align:center;
+  color:var(--text-faint);
+  font-size:.72rem;
+  padding:1.5rem 1rem .5rem;
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div id="toast-stack" aria-live="polite"></div>
+<div id="modal-root" aria-live="polite"></div>
+
+<!-- ============================================================
+     PANTALLA 1 — AUTENTICACIÓN
+     ============================================================ -->
+<section id="auth-screen" class="screen active">
+  <div class="brand-block">
+    <h1 class="brand-mark">EL <span>ÍDOLO</span></h1>
+    <p class="brand-tag">Modo carrera del potrero</p>
+  </div>
+
+  <div class="auth-card">
+    <div class="tabs" role="tablist" aria-label="Autenticación">
+      <button class="tab-btn active" data-tab="login" role="tab" aria-selected="true">Iniciar Sesión</button>
+      <button class="tab-btn" data-tab="register" role="tab" aria-selected="false">Crear Cuenta</button>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="login-form" class="auth-form active" novalidate>
+      <div class="field" id="field-login-email">
+        <label for="login-email">Correo electrónico</label>
+        <div class="input-row">
+          <input type="email" id="login-email" placeholder="tucorreo@club.com" autocomplete="email">
+          <span class="check-icon icon-ok">✓</span>
+          <span class="check-icon icon-err">✕</span>
+        </div>
+        <span class="error-text"></span>
+      </div>
+
+      <div class="field" id="field-login-password">
+        <label for="login-password">Contraseña</label>
+        <div class="input-row">
+          <input type="password" id="login-password" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+          <span class="check-icon icon-ok">✓</span>
+          <span class="check-icon icon-err">✕</span>
+        </div>
+        <span class="error-text"></span>
+      </div>
+
+      <button type="submit" class="primary-btn" id="login-btn" disabled>Entrar a la cancha</button>
+      <p class="auth-switch-hint">¿Primera vez en el potrero? Creá tu cuenta arriba.</p>
+    </form>
+
+    <!-- REGISTRO -->
+    <form id="register-form" class="auth-form" novalidate>
+      <div class="field" id="field-nickname">
+        <label for="reg-nickname">Apodo / Nombre de jugador</label>
+        <div class="input-row">
+          <input type="text" id="reg-nickname" placeholder="Ej: El Pulpo, Fideo, Bocha..." autocomplete="nickname">
+          <span class="check-icon icon-ok">✓</span>
+          <span class="check-icon icon-err">✕</span>
+        </div>
+        <span class="error-text"></span>
+      </div>
+
+      <div class="field" id="field-position">
+        <label for="reg-position">Posición</label>
+        <div class="input-row">
+          <select id="reg-position">
+            <option value="Delantero">Delantero</option>
+            <option value="Mediocampista">Mediocampista</option>
+            <option value="Defensa">Defensa</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" id="field-email">
+        <label for="reg-email">Correo electrónico</label>
+        <div class="input-row">
+          <input type="email" id="reg-email" placeholder="tucorreo@club.com" autocomplete="email">
+          <span class="check-icon icon-ok">✓</span>
+          <span class="check-icon icon-err">✕</span>
+        </div>
+        <span class="error-text"></span>
+      </div>
+
+      <div class="field" id="field-password">
+        <label for="reg-password">Contraseña</label>
+        <div class="input-row">
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          <span class="check-icon icon-ok">✓</span>
+          <span class="check-icon icon-err">✕</span>
+        </div>
+        <span class="error-text"></span>
+      </div>
+
+      <button type="submit" class="primary-btn" id="register-btn" disabled>Registrarme</button>
+      <p class="auth-switch-hint">Al registrarte empieza tu historia en el potrero.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ============================================================
+     PANTALLA 2 — MODO CARRERA
+     ============================================================ -->
+<section id="game-screen" class="screen">
+  <header class="dashboard-header">
+    <div class="header-brand">EL <span>ÍDOLO</span></div>
+
+    <div class="stat-strip">
+      <div class="stat-chip" id="chip-age">
+        <span class="stat-label">Edad</span>
+        <span class="stat-value" id="stat-age">16</span>
+      </div>
+      <div class="stat-chip" id="chip-ovr">
+        <span class="stat-label">OVR</span>
+        <span class="stat-value" id="stat-ovr">50</span>
+      </div>
+      <div class="stat-chip" id="chip-goals">
+        <span class="stat-label">Goles</span>
+        <span class="stat-value" id="stat-goals">0</span>
+      </div>
+      <div class="stat-chip" id="chip-energy">
+        <span class="stat-label">Energía</span>
+        <span class="stat-value" id="stat-energy">100</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="chip-btn" id="btn-offer">📋 Ver Oferta de Club</button>
+      <button class="chip-btn" id="btn-contract">📄 Estado de Contrato</button>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <!-- Tarjeta de decisión -->
+    <div class="event-card">
+      <span class="event-eyebrow" id="event-eyebrow">Temporada en curso</span>
+      <h2 class="event-title" id="event-title">Cargando tu historia...</h2>
+      <p class="event-desc" id="event-desc"></p>
+
+      <div class="event-options" id="event-options"></div>
+
+      <div class="feedback-banner" id="feedback-banner"></div>
+    </div>
+
+    <!-- Columna lateral -->
+    <div class="side-col">
+      <div class="player-card">
+        <div class="ovr-ring-wrap">
+          <svg class="ovr-ring" viewBox="0 0 132 132">
+            <circle class="ring-track" cx="66" cy="66" r="57"></circle>
+            <circle class="ring-progress" id="ring-progress" cx="66" cy="66" r="57"
+                    stroke-dasharray="358.14" stroke-dashoffset="358.14"></circle>
+          </svg>
+          <div class="ovr-center">
+            <span class="ovr-num" id="ovr-num">50</span>
+            <span class="ovr-cap">OVR</span>
+          </div>
+        </div>
+        <h3 class="player-name" id="player-name">Jugador</h3>
+        <span class="player-position" id="player-position">Delantero</span>
+
+        <div class="mini-bars">
+          <div class="mini-bar-row">
+            <span class="mini-bar-label">Energía</span>
+            <span class="mini-bar-track"><span class="mini-bar-fill energy" id="bar-energy" style="width:100%"></span></span>
+            <span class="mini-bar-num" id="bar-energy-num">100</span>
+          </div>
+          <div class="mini-bar-row">
+            <span class="mini-bar-label">Nivel</span>
+            <span class="mini-bar-track"><span class="mini-bar-fill" id="bar-ovr" style="width:50%"></span></span>
+            <span class="mini-bar-num" id="bar-ovr-num">50</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-panel">
+        <div class="history-title">Historial reciente</div>
+        <ul class="history-list" id="history-list">
+          <li class="history-empty">Todavía no tomaste decisiones.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot-note">El Ídolo — inspirado en el modo carrera de Potrero Fútbol. Proyecto demo sin fines comerciales.</footer>
+</section>
+
+<script>
+"use strict";
+(function(){
+
+  /* ============================================================
+     UTILIDADES
+     ============================================================ */
+  const $ = (sel, ctx) => (ctx||document).querySelector(sel);
+  const $$ = (sel, ctx) => Array.from((ctx||document).querySelectorAll(sel));
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const chance = (p) => Math.random() < p;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function formatMoney(n){
+    return '$' + Math.round(n).toLocaleString('es-AR');
+  }
+
+  /* ============================================================
+     TOASTS
+     ============================================================ */
+  function showToast(text){
+    const stack = $('#toast-stack');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = text;
+    stack.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('out');
+      setTimeout(() => el.remove(), 320);
+    }, 2600);
+  }
+
+  /* ============================================================
+     MODALES
+     ============================================================ */
+  function openModal(innerHTML){
+    const root = $('#modal-root');
+    root.innerHTML = '';
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML = `<div class="modal-panel" role="dialog" aria-modal="true">
+        <button class="modal-close" aria-label="Cerrar">✕</button>
+        ${innerHTML}
+      </div>`;
+    root.appendChild(backdrop);
+    requestAnimationFrame(() => backdrop.classList.add('show'));
+
+    function close(){
+      backdrop.classList.remove('show');
+      setTimeout(() => backdrop.remove(), 260);
+    }
+    backdrop.querySelector('.modal-close').addEventListener('click', close);
+    backdrop.addEventListener('click', (e) => { if(e.target === backdrop) close(); });
+    document.addEventListener('keydown', function escHandler(e){
+      if(e.key === 'Escape'){ close(); document.removeEventListener('keydown', escHandler); }
+    });
+    return { close, backdrop };
+  }
+
+  /* ============================================================
+     FONDO DE PARTÍCULAS REACTIVO AL MOUSE
+     ============================================================ */
+  const canvas = $('#bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  const mouse = { x: null, y: null, radius: 130 };
+
+  function resizeCanvas(){
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  class Particle{
+    constructor(){ this.reset(true); }
+    reset(initial){
+      this.x = Math.random() * window.innerWidth;
+      this.y = initial ? Math.random() * window.innerHeight : -10;
+      this.size = rand(0.6, 2.1);
+      this.speedX = rand(-0.18, 0.18);
+      this.speedY = rand(-0.12, 0.12);
+      this.amber = Math.random() < 0.12;
+    }
+    update(){
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if(this.x < -10) this.x = window.innerWidth + 10;
+      if(this.x > window.innerWidth + 10) this.x = -10;
+      if(this.y < -10) this.y = window.innerHeight + 10;
+      if(this.y > window.innerHeight + 10) this.y = -10;
+
+      if(mouse.x !== null){
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const dist = Math.hypot(dx, dy);
+        if(dist < mouse.radius && dist > 0.01){
+          const force = (mouse.radius - dist) / mouse.radius;
+          this.x += (dx / dist) * force * 2.4;
+          this.y += (dy / dist) * force * 2.4;
+        }
+      }
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = this.amber ? 'rgba(255,176,32,0.55)' : 'rgba(18,226,155,0.55)';
+      ctx.fill();
+    }
+  }
+
+  function initParticles(){
+    particles = [];
+    const count = Math.min(130, Math.floor((window.innerWidth * window.innerHeight) / 13000));
+    for(let i = 0; i < count; i++) particles.push(new Particle());
+  }
+
+  function animateParticles(){
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for(const p of particles){ p.update(); p.draw(); }
+    requestAnimationFrame(animateParticles);
+  }
+
+  window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
+  window.addEventListener('touchmove', (e) => {
+    if(e.touches && e.touches[0]){ mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; }
+  }, { passive: true });
+  window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+
+  resizeCanvas();
+  initParticles();
+  if(!prefersReducedMotion){
+    animateParticles();
+  } else {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for(const p of particles) p.draw();
+  }
+
+  /* ============================================================
+     CAMBIO DE PANTALLA
+     ============================================================ */
+  const authScreen = $('#auth-screen');
+  const gameScreen = $('#game-screen');
+
+  function switchScreen(hideEl, showEl){
+    hideEl.classList.add('fade-out');
+    setTimeout(() => {
+      hideEl.classList.remove('active', 'fade-out');
+      hideEl.style.display = 'none';
+      showEl.style.display = 'flex';
+      void showEl.offsetWidth; // reflow
+      showEl.classList.add('active', 'fade-in');
+      setTimeout(() => showEl.classList.remove('fade-in'), 520);
+    }, 320);
+  }
+
+  /* ============================================================
+     TABS DE AUTENTICACIÓN
+     ============================================================ */
+  $$('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+      $$('.auth-form').forEach(f => f.classList.remove('active'));
+      $('#' + btn.dataset.tab + '-form').classList.add('active');
+    });
+  });
+
+  /* ============================================================
+     VALIDACIÓN EN TIEMPO REAL
+     ============================================================ */
+  function setFieldState(fieldEl, isValid, message){
+    const input = fieldEl.querySelector('input');
+    const errorEl = fieldEl.querySelector('.error-text');
+    if(input.value.length === 0){
+      fieldEl.classList.remove('valid', 'invalid');
+      if(errorEl) errorEl.textContent = '';
+      return;
+    }
+    if(isValid){
+      fieldEl.classList.add('valid');
+      fieldEl.classList.remove('invalid');
+      if(errorEl) errorEl.textContent = '';
+    } else {
+      fieldEl.classList.add('invalid');
+      fieldEl.classList.remove('valid');
+      if(errorEl) errorEl.textContent = message;
+    }
+  }
+
+  const isValidNickname = (v) => v.trim().length >= 3;
+  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const isValidPassword = (v) => v.length >= 6;
+
+  // --- Registro ---
+  const regNickname = $('#reg-nickname');
+  const regEmail = $('#reg-email');
+  const regPassword = $('#reg-password');
+  const registerBtn = $('#register-btn');
+
+  const regState = { nickname:false, email:false, password:false };
+
+  function checkRegisterForm(){
+    regState.nickname = isValidNickname(regNickname.value);
+    setFieldState($('#field-nickname'), regState.nickname, 'El apodo debe tener al menos 3 caracteres.');
+
+    regState.email = isValidEmail(regEmail.value);
+    setFieldState($('#field-email'), regState.email, 'Ingresá un correo electrónico válido.');
+
+    regState.password = isValidPassword(regPassword.value);
+    setFieldState($('#field-password'), regState.password, 'La contraseña debe tener 6 caracteres o más.');
+
+    registerBtn.disabled = !(regState.nickname && regState.email && regState.password);
+  }
+  [regNickname, regEmail, regPassword].forEach(el => el.addEventListener('input', checkRegisterForm));
+
+  // --- Login ---
+  const loginEmail = $('#login-email');
+  const loginPassword = $('#login-password');
+  const loginBtn = $('#login-btn');
+  const loginState = { email:false, password:false };
+
+  function checkLoginForm(){
+    loginState.email = isValidEmail(loginEmail.value);
+    setFieldState($('#field-login-email'), loginState.email, 'Ingresá un correo electrónico válido.');
+
+    loginState.password = isValidPassword(loginPassword.value);
+    setFieldState($('#field-login-password'), loginState.password, 'La contraseña debe tener 6 caracteres o más.');
+
+    loginBtn.disabled = !(loginState.email && loginState.password);
+  }
+  [loginEmail, loginPassword].forEach(el => el.addEventListener('input', checkLoginForm));
+
+  /* ============================================================
+     ENVÍO DE FORMULARIOS
+     ============================================================ */
+  $('#register-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(registerBtn.disabled) return;
+
+    registerBtn.disabled = true;
+    registerBtn.innerHTML = '<span class="btn-spinner"></span> Registrando...';
+
+    const nickname = regNickname.value.trim();
+    const position = $('#reg-position').value;
+
+    setTimeout(() => {
+      registerBtn.innerHTML = 'Registrarme';
+      registerBtn.disabled = false;
+      showSuccessModal(nickname, position);
+    }, 1500 + Math.random() * 500);
+  });
+
+  $('#login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(loginBtn.disabled) return;
+
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<span class="btn-spinner"></span> Entrando...';
+
+    setTimeout(() => {
+      loginBtn.innerHTML = 'Entrar a la cancha';
+      loginBtn.disabled = false;
+      initGame('Capitán', 'Delantero');
+      switchScreen(authScreen, gameScreen);
+      setTimeout(() => showToast('¡Bienvenido de nuevo al potrero!'), 500);
+    }, 1300 + Math.random() * 400);
+  });
+
+  function showSuccessModal(nickname, position){
+    const { close } = openModal(`
+      <div class="modal-icon">🏆</div>
+      <h3 class="modal-title">¡Registro Exitoso!</h3>
+      <p class="modal-body">Bienvenido al Potrero, futuro Ídolo. Tu leyenda como <strong>${escapeHTML(position)}</strong> está por comenzar, ${escapeHTML(nickname)}.</p>
+      <div class="modal-actions">
+        <button class="primary-btn" id="start-career-btn">Comenzar mi carrera</button>
+      </div>
+    `);
+    $('#start-career-btn').addEventListener('click', () => {
+      close();
+      initGame(nickname, position);
+      switchScreen(authScreen, gameScreen);
+    });
+  }
+
+  function escapeHTML(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  /* ============================================================
+     ESTADO DEL JUEGO
+     ============================================================ */
+  let state = null;
+  let usedEventIds = [];
+  let lastEventId = null;
+
+  function freshState(nickname, position){
+    return {
+      nickname, position,
+      age: 16, ovr: 50, goals: 0, energy: 100,
+      decisionsSinceAgeUp: 0,
+      retired: false,
+      contract: { club: 'Potrero FC (Reserva)', status: 'Amateur', salary: 0, years: 0 },
+      offer: null,
+      history: []
+    };
+  }
+
+  function initGame(nickname, position){
+    state = freshState(nickname, position);
+    usedEventIds = [];
+    lastEventId = null;
+    $('#player-name').textContent = nickname;
+    $('#player-position').textContent = position;
+    renderStats(true);
+    renderHistory();
+    renderEvent();
+  }
+
+  /* ============================================================
+     BANCO DE EVENTOS
+     ============================================================ */
+  const EVENTS = [
+    {
+      id: 'contract1', minAge: 16, maxAge: 17,
+      title: '¿Aceptás firmar tu primer contrato profesional?',
+      desc: 'El club te ofrece dar el salto del amateurismo a ser profesional. Es la decisión que puede cambiar todo.',
+      options: [
+        { label: 'Firmar ahora', hint: 'Seguro, arrancás ya',
+          effect: (s) => {
+            s.contract = { club: 'Potrero FC', status: 'Profesional', salary: 800 + s.ovr * 22, years: 2 };
+            return { deltas: { ovr: 2, energy: -5 }, text: 'Firmaste tu primer contrato. ¡Ya sos profesional del Potrero FC!' };
+          } },
+        { label: 'Esperar mejor oferta', hint: 'Arriesgado, puede valer la pena',
+          effect: (s) => {
+            const good = chance(0.55);
+            s.contract = { club: 'Potrero FC', status: 'Profesional', salary: (good ? 1200 : 700) + s.ovr * 22, years: 2 };
+            return good
+              ? { deltas: { ovr: 4, energy: -8 }, text: 'La espera valió la pena: firmaste con mejores condiciones.' }
+              : { deltas: { ovr: -1, energy: -10 }, text: 'Nadie más se interesó. Firmaste igual, pero perdiste tiempo valioso.' };
+          } }
+      ]
+    },
+    {
+      id: 'train-party', minAge: 16, maxAge: 22,
+      title: '¿Entrenar horas extra o irte de fiesta?',
+      desc: 'Terminó la práctica. Tus compañeros te invitan a festejar el fin de semana, pero mañana hay doble turno.',
+      options: [
+        { label: 'Entrenar horas extra', hint: 'Sacrificio hoy, nivel mañana',
+          effect: () => ({ deltas: { ovr: 4, energy: -15 }, text: 'Le metiste fierro en el entrenamiento extra. Tu nivel subió.' }) },
+        { label: 'Irte de fiesta', hint: 'Descanso... con riesgo',
+          effect: () => {
+            const problema = chance(0.25);
+            return problema
+              ? { deltas: { ovr: -4, energy: 6 }, text: 'Te pasaste de la raya. El técnico se enteró y no está nada contento.' }
+              : { deltas: { ovr: -2, energy: 10 }, text: 'Recargaste pilas con los muchachos, aunque perdiste algo de ritmo.' };
+          } }
+      ]
+    },
+    {
+      id: 'penalty', minAge: 17, maxAge: 99,
+      title: 'Penal decisivo: ¿la tirás colocada o con fuerza?',
+      desc: 'Último minuto, penal a favor. Todo el estadio contiene la respiración esperando tu definición.',
+      options: [
+        { label: 'Colocada, al ángulo', hint: 'Más precisión, más control',
+          effect: () => {
+            const gol = chance(0.72);
+            return gol
+              ? { deltas: { goals: 1, ovr: 1 }, text: '¡GOOOL! Definición quirúrgica al ángulo. El estadio explota.' }
+              : { deltas: { ovr: -1 }, text: 'El arquero te adivinó la intención y la tapó.' };
+          } },
+        { label: 'Con toda la fuerza', hint: 'Más potencia, más riesgo',
+          effect: () => {
+            const gol = chance(0.55);
+            return gol
+              ? { deltas: { goals: 1, energy: -4 }, text: '¡GOL! Un misil imposible de atajar.' }
+              : { deltas: { energy: -8, ovr: -2 }, text: 'La mandaste a la tribuna. Los hinchas te silban.' };
+          } }
+      ]
+    },
+    {
+      id: 'injury-risk', minAge: 18, maxAge: 99,
+      title: 'Molestia física antes del clásico',
+      desc: 'Sentís una molestia en el isquiotibial, pero es el partido más importante del año.',
+      options: [
+        { label: 'Jugar igual', hint: 'El equipo te necesita',
+          effect: () => {
+            const lesion = chance(0.3);
+            return lesion
+              ? { deltas: { energy: -30, ovr: -4 }, text: 'Te lesionaste feo. Vas a estar afuera de las canchas un buen tiempo.' }
+              : { deltas: { goals: 1, ovr: 2 }, text: 'Jugaste con dolor y fuiste la figura del partido.' };
+          } },
+        { label: 'Cuidarte y no jugar', hint: 'Prudencia ante todo',
+          effect: () => ({ deltas: { energy: 10, ovr: -1 }, text: 'El cuerpo técnico valoró tu responsabilidad, aunque perdiste ritmo.' }) }
+      ]
+    },
+    {
+      id: 'media', minAge: 17, maxAge: 99,
+      title: 'Entrevista con la prensa',
+      desc: 'Un periodista te pregunta directo: "¿Te ves jugando algún día en Europa?"',
+      options: [
+        { label: 'Respuesta ambiciosa', hint: 'Subís la apuesta',
+          effect: () => ({ deltas: { ovr: 1, energy: -5 }, text: 'Tu declaración generó expectativa. Ahora la exigencia es mayor.' }) },
+        { label: 'Respuesta humilde', hint: 'Bajás el perfil',
+          effect: () => ({ deltas: { energy: 5 }, text: 'Bajaste el perfil ante la prensa. El grupo te valora por eso.' }) }
+      ]
+    },
+    {
+      id: 'sponsor', minAge: 18, maxAge: 99,
+      title: 'Propuesta de auspicio personal',
+      desc: 'Una marca deportiva quiere que seas la imagen de su nueva línea de botines.',
+      options: [
+        { label: 'Aceptar el auspicio', hint: 'Más plata, más compromisos',
+          effect: (s) => { s.contract.salary += 150; return { deltas: { energy: -5 }, text: 'Firmaste tu primer contrato de auspicio personal. ¡Más visibilidad!' }; } },
+        { label: 'Rechazar la propuesta', hint: 'Foco total en la cancha',
+          effect: () => ({ deltas: { ovr: 1 }, text: 'Preferiste concentrarte al cien por ciento en el juego.' }) }
+      ]
+    },
+    {
+      id: 'derby', minAge: 20, maxAge: 99,
+      title: 'El clásico de tu vida',
+      desc: 'Se juega el partido más importante de la temporada frente a tu gente.',
+      options: [
+        { label: 'Liderar al equipo', hint: 'Toda la responsabilidad',
+          effect: () => ({ deltas: { goals: 1, ovr: 3, energy: -10 }, text: 'Fuiste el capitán silencioso. Una actuación para el recuerdo.' }) },
+        { label: 'Jugar de forma discreta', hint: 'Cumplir sin sobresalir',
+          effect: () => ({ deltas: { energy: 5, ovr: -1 }, text: 'Jugaste correcto, sin sobresalir, sin arriesgar.' }) }
+      ]
+    },
+    {
+      id: 'national-team', minAge: 21, maxAge: 99,
+      title: 'Llamado a la Selección',
+      desc: 'El cuerpo técnico de la selección nacional empezó a seguir de cerca tu rendimiento.',
+      options: [
+        { label: 'Entrenar al doble', hint: 'Todo por la citación',
+          effect: () => ({ deltas: { ovr: 5, energy: -20 }, text: 'El esfuerzo valió la pena: quedaste pre-convocado a la Selección.' }) },
+        { label: 'Priorizar el descanso', hint: 'Cuidar el cuerpo',
+          effect: () => ({ deltas: { energy: 15, ovr: -1 }, text: 'Decidiste cuidarte, aunque dejaste pasar una gran chance.' }) }
+      ]
+    },
+    {
+      id: 'young-promise', minAge: 16, maxAge: 19,
+      title: 'Un pibe de las inferiores te pide consejo',
+      desc: 'Un chico de las divisiones inferiores te mira como referente y se anima a pedirte un consejo.',
+      options: [
+        { label: 'Darte el tiempo', hint: 'Ser un líder del grupo',
+          effect: () => ({ deltas: { energy: -3, ovr: 1 }, text: 'Ese gesto te hizo crecer como líder dentro del plantel.' }) },
+        { label: 'Decir que no tenés tiempo', hint: 'Enfocarte en vos',
+          effect: () => ({ deltas: { energy: 2, ovr: -1 }, text: 'El grupo lo notó. Perdiste algo de respeto en el vestuario.' }) }
+      ]
+    },
+    {
+      id: 'retirement-thought', minAge: 30, maxAge: 99,
+      title: 'Pensás en el retiro',
+      desc: 'El cuerpo ya no responde como antes. ¿Seguís exigiéndote al máximo?',
+      options: [
+        { label: 'Seguir al cien por ciento', hint: 'Exprimir la carrera',
+          effect: () => ({ deltas: { ovr: 1, energy: -20 }, text: 'Le seguís poniendo el cuerpo pese al paso de los años.' }) },
+        { label: 'Bajar un cambio', hint: 'Disfrutar lo que queda',
+          effect: () => ({ deltas: { energy: 15, ovr: -2 }, text: 'Empezás a jugar más relajado, disfrutando lo que queda de carrera.' }) }
+      ]
+    }
+  ];
+
+  const FORCED_REST = {
+    id: 'forced-rest',
+    title: 'Estás al límite físico',
+    desc: 'Tu cuerpo no da para más. El cuerpo técnico te obliga a parar antes de que sea peor.',
+    options: [
+      { label: 'Descansar y recuperarte', hint: 'No hay otra opción',
+        effect: () => ({ deltas: { energy: 100, forceEnergy: true }, text: 'Te tomaste unos días de descanso obligado. Volviste con todas las pilas.' }) }
+    ]
+  };
+
+  function pickNextEvent(){
+    if(state.energy <= 10) return FORCED_REST;
+
+    let pool = EVENTS.filter(ev => state.age >= ev.minAge && state.age <= ev.maxAge && !usedEventIds.includes(ev.id));
+    if(pool.length === 0){
+      usedEventIds = lastEventId ? [lastEventId] : [];
+      pool = EVENTS.filter(ev => state.age >= ev.minAge && state.age <= ev.maxAge && !usedEventIds.includes(ev.id));
+    }
+    if(pool.length === 0){
+      pool = EVENTS.filter(ev => state.age >= ev.minAge && state.age <= ev.maxAge);
+    }
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    return chosen;
+  }
+
+  /* ============================================================
+     RENDER: EVENTO ACTUAL
+     ============================================================ */
+  function renderEvent(){
+    if(state.retired) return;
+    const ev = pickNextEvent();
+    if(ev.id !== 'forced-rest'){
+      usedEventIds.push(ev.id);
+      lastEventId = ev.id;
+    }
+
+    $('#event-eyebrow').textContent = ev.id === 'forced-rest' ? 'Descanso obligatorio' : `Temporada · Edad ${state.age}`;
+    $('#event-title').textContent = ev.title;
+    $('#event-desc').textContent = ev.desc;
+
+    const optionsWrap = $('#event-options');
+    optionsWrap.innerHTML = '';
+    ev.options.forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `<span class="option-label">${escapeHTML(opt.label)}</span><span class="option-hint">${escapeHTML(opt.hint || '')}</span>`;
+      btn.addEventListener('click', (e) => applyOption(opt, e.currentTarget));
+      optionsWrap.appendChild(btn);
+    });
+
+    const banner = $('#feedback-banner');
+    banner.classList.remove('show', 'negative');
+    banner.textContent = '';
+  }
+
+  function applyOption(option, btnEl){
+    $$('.option-btn').forEach(b => b.disabled = true);
+
+    const result = option.effect(state);
+    const deltas = result.deltas || {};
+
+    // aplicar deltas con clamps
+    if(typeof deltas.ovr === 'number') state.ovr = clamp(state.ovr + deltas.ovr, 1, 99);
+    if(typeof deltas.goals === 'number') state.goals = Math.max(0, state.goals + deltas.goals);
+    if(typeof deltas.energy === 'number'){
+      state.energy = deltas.forceEnergy ? deltas.energy : clamp(state.energy + deltas.energy, 0, 100);
+    }
+
+    // popups flotantes desde el botón elegido
+    spawnStatPops(btnEl, deltas);
+
+    // feedback banner
+    const banner = $('#feedback-banner');
+    banner.textContent = result.text;
+    const negative = ((deltas.ovr||0) < 0 && (deltas.energy||0) <= 0) || (deltas.ovr||0) < -2;
+    banner.classList.toggle('negative', negative);
+    requestAnimationFrame(() => banner.classList.add('show'));
+
+    pushHistory(result.text);
+    renderStats();
+
+    state.decisionsSinceAgeUp++;
+    if(state.decisionsSinceAgeUp >= 3){
+      state.decisionsSinceAgeUp = 0;
+      state.age++;
+      showToast('Nueva temporada — ahora tenés ' + state.age + ' años');
+      renderStats();
+      if(state.age >= 35){
+        setTimeout(() => triggerRetirement(), 900);
+        return;
+      }
+    }
+
+    setTimeout(() => { if(!state.retired) renderEvent(); }, 1250);
+  }
+
+  function spawnStatPops(anchorEl, deltas){
+    const rect = anchorEl.getBoundingClientRect();
+    const labels = { ovr: 'OVR', energy: 'Energía', goals: 'Gol' };
+    let offset = 0;
+    Object.keys(labels).forEach((key) => {
+      const val = deltas[key];
+      if(typeof val !== 'number' || val === 0 || deltas.forceEnergy) return;
+      const pop = document.createElement('div');
+      const positive = val > 0;
+      pop.className = 'stat-pop ' + (positive ? 'pos' : 'neg');
+      pop.textContent = (positive ? '+' : '') + val + ' ' + labels[key];
+      pop.style.left = (rect.left + rect.width / 2 - 20 + offset) + 'px';
+      pop.style.top = (rect.top - 6) + 'px';
+      document.body.appendChild(pop);
+      offset += 46;
+      setTimeout(() => pop.remove(), 1150);
+    });
+  }
+
+  function pushHistory(text){
+    state.history.unshift({ text, age: state.age });
+    if(state.history.length > 8) state.history.pop();
+    renderHistory();
+  }
+
+  function renderHistory(){
+    const list = $('#history-list');
+    if(state.history.length === 0){
+      list.innerHTML = '<li class="history-empty">Todavía no tomaste decisiones.</li>';
+      return;
+    }
+    list.innerHTML = state.history.map(h => `<li>${escapeHTML(h.text)}</li>`).join('');
+  }
+
+  /* ============================================================
+     RENDER: STATS / HEADER / PLAYER CARD
+     ============================================================ */
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 57;
+
+  function renderStats(instant){
+    const prevOvr = parseInt($('#stat-ovr').textContent, 10) || state.ovr;
+    const prevEnergy = parseInt($('#stat-energy').textContent, 10) || state.energy;
+    const prevGoals = parseInt($('#stat-goals').textContent, 10) || state.goals;
+
+    $('#stat-age').textContent = state.age;
+    $('#stat-ovr').textContent = state.ovr;
+    $('#stat-goals').textContent = state.goals;
+    $('#stat-energy').textContent = state.energy;
+
+    if(!instant){
+      pulseChip('chip-ovr', state.ovr - prevOvr);
+      pulseChip('chip-energy', state.energy - prevEnergy);
+      pulseChip('chip-goals', state.goals - prevGoals);
+    }
+
+    const energyChip = $('#chip-energy');
+    energyChip.classList.toggle('energy-low', state.energy <= 20);
+
+    // aro OVR
+    const ring = $('#ring-progress');
+    const offset = RING_CIRCUMFERENCE - (state.ovr / 99) * RING_CIRCUMFERENCE;
+    ring.style.strokeDasharray = RING_CIRCUMFERENCE.toFixed(2);
+    ring.style.strokeDashoffset = offset.toFixed(2);
+    $('#ovr-num').textContent = state.ovr;
+
+    // mini barras
+    $('#bar-energy').style.width = state.energy + '%';
+    $('#bar-energy').classList.toggle('low', state.energy <= 20);
+    $('#bar-energy-num').textContent = state.energy;
+    $('#bar-ovr').style.width = state.ovr + '%';
+    $('#bar-ovr-num').textContent = state.ovr;
+  }
+
+  function pulseChip(id, delta){
+    const chip = $('#' + id);
+    if(!chip || delta === 0) return;
+    chip.classList.remove('pulse-up', 'pulse-down');
+    void chip.offsetWidth;
+    chip.classList.add(delta > 0 ? 'pulse-up' : 'pulse-down');
+  }
+
+  /* ============================================================
+     MODAL: OFERTA DE CLUB
+     ============================================================ */
+  const CLUB_NAMES = ['Deportivo Norte', 'Atlético Central', 'Unión del Sur', 'Rayo Popular', 'Estrella Roja FC', 'Costa Azul CF', 'Rivadavia United', 'Talleres del Puerto'];
+
+  function generateOffer(){
+    const club = CLUB_NAMES[Math.floor(Math.random() * CLUB_NAMES.length)];
+    const baseSalary = state.contract.salary > 0 ? state.contract.salary : 800 + state.ovr * 20;
+    const multiplier = rand(1.2, 1.9);
+    return {
+      club,
+      salary: Math.round((baseSalary * multiplier) / 10) * 10,
+      years: chance(0.5) ? 2 : 3
+    };
+  }
+
+  $('#btn-offer').addEventListener('click', () => {
+    if(!state.offer){
+      if(state.ovr < 45){
+        openModal(`
+          <div class="modal-icon">📋</div>
+          <h3 class="modal-title">Sin ofertas por ahora</h3>
+          <p class="modal-body">Todavía no llamás la atención de otros clubes. Seguí sumando decisiones y subiendo tu nivel para recibir propuestas.</p>
+          <div class="modal-actions"><button class="ghost-btn" id="close-offer">Entendido</button></div>
+        `);
+        $('#close-offer').addEventListener('click', () => $('.modal-close').click());
+        return;
+      }
+      state.offer = generateOffer();
+    }
+    renderOfferModal();
+  });
+
+  function renderOfferModal(){
+    const offer = state.offer;
+    const { close } = openModal(`
+      <div class="modal-icon">📋</div>
+      <h3 class="modal-title">Oferta de club</h3>
+      <p class="modal-body">Un club se interesó en tu situación contractual. Esto es lo que proponen:</p>
+      <div class="contract-row"><span class="label">Club</span><span class="value">${escapeHTML(offer.club)}</span></div>
+      <div class="contract-row"><span class="label">Salario ofrecido</span><span class="value">${formatMoney(offer.salary)}/mes</span></div>
+      <div class="contract-row"><span class="label">Duración</span><span class="value">${offer.years} años</span></div>
+      <div class="modal-actions">
+        <button class="ghost-btn" id="reject-offer">Rechazar</button>
+        <button class="primary-btn" id="accept-offer">Aceptar oferta</button>
+      </div>
+    `);
+    $('#accept-offer').addEventListener('click', () => {
+      state.contract = { club: offer.club, status: 'Profesional', salary: offer.salary, years: offer.years };
+      state.offer = null;
+      close();
+      showToast('¡Fichaste por ' + offer.club + '!');
+    });
+    $('#reject-offer').addEventListener('click', () => {
+      state.offer = null;
+      close();
+      showToast('Rechazaste la oferta.');
+    });
+  }
+
+  /* ============================================================
+     MODAL: ESTADO DE CONTRATO
+     ============================================================ */
+  $('#btn-contract').addEventListener('click', () => {
+    const c = state.contract;
+    const pillClass = c.status === 'Profesional' ? 'status-pro' : 'status-amateur';
+    openModal(`
+      <div class="modal-icon">📄</div>
+      <h3 class="modal-title">Estado de contrato</h3>
+      <div class="contract-row"><span class="label">Club</span><span class="value">${escapeHTML(c.club)}</span></div>
+      <div class="contract-row"><span class="label">Estado</span><span class="status-pill ${pillClass}">${escapeHTML(c.status)}</span></div>
+      <div class="contract-row"><span class="label">Salario</span><span class="value">${c.salary > 0 ? formatMoney(c.salary) + '/mes' : '—'}</span></div>
+      <div class="contract-row"><span class="label">Años restantes</span><span class="value">${c.years || '—'}</span></div>
+      <p class="modal-body" style="margin-top:1rem;">Mientras más subís tu nivel, mejores ofertas vas a recibir de otros clubes.</p>
+      <div class="modal-actions"><button class="ghost-btn" id="close-contract">Cerrar</button></div>
+    `);
+    $('#close-contract').addEventListener('click', () => $('.modal-close').click());
+  });
+
+  /* ============================================================
+     RETIRO / FIN DE CARRERA
+     ============================================================ */
+  function triggerRetirement(){
+    state.retired = true;
+    let verdict = 'Cumpliste tu sueño de vivir del fútbol.';
+    if(state.ovr >= 85) verdict = 'Te convertiste en una leyenda del potrero.';
+    else if(state.ovr >= 65) verdict = 'Fuiste un profesional sólido y respetado.';
+
+    openModal(`
+      <div class="modal-icon">🏅</div>
+      <h3 class="modal-title">Fin de tu carrera</h3>
+      <p class="modal-body">A los ${state.age} años, ${escapeHTML(state.nickname)} cuelga los botines. ${verdict}</p>
+      <div class="summary-grid">
+        <div class="summary-item"><div class="n">${state.ovr}</div><div class="l">OVR final</div></div>
+        <div class="summary-item"><div class="n">${state.goals}</div><div class="l">Goles totales</div></div>
+      </div>
+      <div class="modal-actions">
+        <button class="primary-btn" id="restart-career">Jugar de nuevo</button>
+      </div>
+    `);
+    $('#restart-career').addEventListener('click', () => {
+      $('.modal-close').click();
+      initGame(state.nickname, state.position);
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
