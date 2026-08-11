@@ -13,10 +13,9 @@
   --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   --border-radius: 50px;
   --shadow-sm: 0px  20px 20px rgba(251, 191, 36, 1);
-  --shadow-md: -1px 10px 12px 10px rgb(121, 10, 233), 17px 30px 20px rgba(1, 0, 8, 10);
+  --shadow-md: -1px  10px 12px 10px rgba(121, 10, 233), 17px 30px 20px rgba(1, 0, 8, 10);
   --transition: all 0.8s ease;
-
-
+  
 
 *, *::before, *::after {
   box-sizing: border-box;
