@@ -31,8 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["action"])) {
             header("Location: index.php");
             exit();
         } else {
-            echo "Usuario o contraseña incorrectos.";
-        }
+            echo '<p class="error-login">Usuario o contraseña incorrectos.</p>';
+            }
     }
 }
 

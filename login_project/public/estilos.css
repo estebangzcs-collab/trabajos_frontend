@@ -1,0 +1,145 @@
+/* Reset básico y tipografía */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2fa4b3, #171a7b, #2fb37a);
+}
+
+/* Contenedor principal de la tarjeta */
+.contenedor {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 400px;
+    padding: 35px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.75);
+}
+
+/* Título */
+form h2 {
+    text-align: center;
+    color: #333333;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+/* Campos de entrada genéricos */
+form input[type="text"],
+form input[type="password"] {
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    border: 2px solid #cccccc;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    color: #555555;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+form input[type="text"]:focus,
+form input[type="password"]:focus {
+    border-color: #635bff;
+}
+
+/* Placeholder personalizado */
+form input::placeholder {
+    color: #453f3f;
+}
+
+/* Contenedor del campo de contraseña e ícono */
+.password-box {
+    position: relative;
+    width: 100%;
+}
+
+.password-box input {
+    padding-right: 45px; /* Espacio para que el texto no tape el ojo */
+}
+
+.password-box #verPassword {
+    position: absolute;
+    right: 15px;
+    top: 38%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #555555;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-box #verPassword:hover {
+    color: #333333;
+}
+
+/* Botón principal */
+form button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #090910, #635bff, #090910); /* Azul/Púrpura como el de la imagen */
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+form button[type="submit"]:hover {
+    background-color: #1e595c;
+}
+
+form button[type="submit"]:active {
+    transform: scale(0.99);
+}
+
+/* Enlace a registro */
+.enlace-registro {
+    text-align: center;
+    margin-top: 18px;
+}
+
+.enlace-registro a {
+    color: #111ced;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.enlace-registro a:hover {
+    text-decoration: underline;
+}
+
+/* Mensajes de error/éxito */
+#mensaje {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 0.88rem;
+    color: #e74c3c;
+}
+
+.error-login {
+    color: #d93025;
+    background: #fde8e7;
+    border: 1px solid #f5b5b0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 15px;
+    text-align: auto;
+    font-size: 14px;
+    font-weight: bold;
+}
