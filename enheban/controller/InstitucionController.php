@@ -3,16 +3,16 @@
     class InstitucionController{
 
     public function index(){
-        include("Institucion.php");
+        include("modelo/Institucion.php");
     $institucion = new Institucion();
 
-    include("Profesor.php");
+    include("modelo/Profesor.php");
     $profesor = new Profesor();
 
-    include("Materia.php");
+    include("modelo/Materia.php");
     $ingles = new Materia();
 
-    include("Estudiante.php");
+    include("modelo/Estudiante.php");
     $enheban = new Estudiante();
 
     $institucion->setNombre("Institucion Educativa Departamental Pablo Neruda");
