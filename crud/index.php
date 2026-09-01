@@ -26,7 +26,7 @@
 		<form class="col-4 p-3" method="POST">
 			<h3 class="text-center text-secondary">Registro de personas</h3>
 			<?php
-			include "controller/resgistro_persona.php";
+			include "controlador/resgistro_persona.php";
 			?>
 			<div class="mb-3">
 				<label for="exampleInputEmail1" class="form-label">Nombre:</label>
