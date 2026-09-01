@@ -64,6 +64,21 @@
 					</tr>
 				</thead>
 				<tbody>
+<<<<<<< HEAD
+					<tr>
+						<td>Mark</td>
+						<td>Otto</td>
+						<td>@mdo</td>
+						<td>Mark</td>
+						<td>Otto</td>
+						<td>@mdo</td>
+						<td>
+							<a herf="" class="btn btn-small btn-warning"><i class="fa-solid fa-pen-to-square"></i></a>																			
+							<a herf="" class="btn btn-small btn-danger"><i class="fa-solid fa-trash"></i></a>	
+						</td>
+					</tr>
+					
+=======
 					<?php
 					include "modelos/conexion.php";
 					$sql = $conexion->query("SELECT * FROM tb_persona");
@@ -82,6 +97,7 @@
 						</tr>
 					<?php }
 					?>
+>>>>>>> e3559770a08e33da88d754ae92f04fdabb63d0f6
 				</tbody>
 			</table>
 		</div>
