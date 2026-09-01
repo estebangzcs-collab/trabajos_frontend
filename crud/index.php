@@ -60,8 +60,8 @@
 						<td>Otto</td>
 						<td>@mdo</td>
 						<td>
-							<a herf="" class="btn btn-small btn" herf="<i class="fa-solid fa-pen-fancy"></i></a>																				
-							<a herf="<i class="fa-solid fa-trash"></i></a>	
+							<a herf="" class="btn btn-small btn-warning"><i class="fa-solid fa-pen-to-square"></i></a>																			
+							<a herf="" class="btn btn-small btn-danger"><i class="fa-solid fa-trash"></i></a>	
 						</td>
 					</tr>
 					
